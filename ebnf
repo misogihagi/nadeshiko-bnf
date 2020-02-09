@@ -1,3 +1,12 @@
+接続詞 = 'して'
+助詞 =   'について' | 'くらい' | 'なのか' | 'までを' | 'までの' |
+  'とは' | 'から' | 'まで' | 'だけ' | 'より' | 'ほど' | 'など' |
+  'いて' | 'えて' | 'きて' | 'けて' | 'して' | 'って' | 'にて' | 'みて' |
+  'めて' | 'ねて' | 'では' | 'には' | 'は~' |
+  'は' | 'を' | 'に' | 'へ' | 'で' | 'と' | 'が' | 'の'
+たられば = 'でなければ'  | 'ならば' | 'なら' | 'たら' | 'れば'
+文末 = 'です'  | 'ます'
+
 ハッシュバンコメント = '#!', .* , 改行 ;
 コメント = 一行コメント | 範囲コメント ;
 一行コメント = 一行コメント識別子, 使用可能文字*, 改行 ;
@@ -7,6 +16,7 @@
 範囲コメント識別子終わり = ＊, ／ ;
 
 プログラム = ハッシュバンコメント? , (文 | 連文)*, EOF;
+EOF  = !.
 連文 = 文, 接続詞, 文
 
 文 = 
@@ -28,22 +38,22 @@ EOS = 改行 | ； | 句点 ;
 代入文 = グローバルスコープ代入文 | ローカルスコープ代入文 ;
 グローバルスコープ代入文 = 名前, ＝, 式 ;
 ローカルスコープ代入文 = 再代入可能ローカルスコープ代入文 | 再代入不可能ローカルスコープ代入文 ;
-再代入可能ローカルスコープ代入文 = 名前, 'とは', 文節区切り?, '変数', ＝, 式 | '変数', 空白, 名前, ＝, 式 ;
-再代入不可能ローカルスコープ代入文 = 名前, 'とは', 文節区切り?, '定数', ＝, 式 | '定数', 空白, 名前, ＝, 式 ;
+再代入可能ローカルスコープ代入文 = 名前, 'とは', '変数', ＝, 式 | '変数', 空白, 名前, ＝, 式 ;
+再代入不可能ローカルスコープ代入文 = 名前, 'とは', '定数', ＝, 式 | '定数', 空白, 名前, ＝, 式 ;
 
-条件文 = もし, 読点?, [も], 条件式, たられば, [違えば, 条件式], ここまで ;
-
+条件文 = 'もし', 'も'?, 式, たられば, ('違えば', 式)?, 'ここまで' ;
 繰り返し文 = 
-  式, '回', 読点?, 'ここから'?, (文* | 抜ける | 続ける), 'ここまで'
-| 変数, を, 式, から, 式, まで, 繰り返す, (文* | 抜ける | 続ける), 'ここまで'
-| '(', 式, ')', 'の', '間','ここから'?, (文* | 抜ける | 続ける), 'ここまで'
+  式, '回', 読点?, 'ここから'?, (文* | 抜ける文 | 続ける文), 'ここまで'
+| 変数, 'を', 式, 'から', 式, 'まで', '繰', 'り'? '返' 'す'?, (文* | 抜ける文 | 続ける文), 'ここまで'
+| '(', 式, ')', 'の', '間', 'ここから'?, (文* | 抜ける文 | 続ける文), 'ここまで'
 ;
-反復文 = (変数, 'で')?, (オブジェクト|配列), 'を', '反復', EOS, (文* | 抜ける | 続ける), 'ここまで' ;
+反復文 = (変数, 'で')?, (オブジェクト | 配列), 'を', '反復', EOS, (文* | 抜ける文 | 続ける文), 'ここまで' ;
 抜ける文 = '抜ける', EOS ;
+続ける文 = '続ける', EOS ;
 
 関数定義文 = 
-('●' | '関数', 空白 ), ( '(', 引数, ')' )?, 名前, 'とは'?, (文 | 戻る文)*, ここまで
-| ('●' | '関数', 空白 ), 名前, ( '(', 引数, ')' )?, 'とは'?, (文 | 戻る文)*, ここまで
+('●' | '関数', 空白 ), ( '(', 引数, ')' )?, 名前, 'とは'?, (文 | 戻る文)*, 'ここまで'
+| ('●' | '関数', 空白 ), 名前, ( '(', 引数, ')' )?, 'とは'?, (文 | 戻る文)*, 'ここまで'
 ;
 戻る文 = 式, ('を' | 'で'), '戻', 送り仮名? ;
 
@@ -52,14 +62,14 @@ EOS = 改行 | ； | 句点 ;
 | '逐次実行', EOS, '先に', 読点?, 文*, ('次に', 読点?, 文*)*, 'ここまで'
 ;
 取り込む文 = '!「', プラグイン, '」', 'を', 読点, '取り込む' ;
-プラグイン = 使用可能文字+ :
+プラグイン = 使用可能文字+ ;
 送り仮名= ひらがな+ ;
 ひらがな = [ぁ-ん] ;
 
 エラー監視文 = 'エラー監視', EOS, 文*, 'エラーならば', EOS, 文*, 'ここまで' ;
 
-関数文 = {[引数, (助詞 | ，)]}, 読点? ,  関数 | 無名関数を引数に取る関数文 ;
-無名関数を引数に取る関数文 = 関数, 'に'? ,'は', ( '(', {[引数, (助詞 | ，)]}, ')' )?, 文*, 'ここまで' ;
+関数文 = (引数, (助詞 | ，))*, 読点? ,  関数 | 無名関数を引数に取る関数文 ;
+無名関数を引数に取る関数文 = 関数, 'に'? , 'は', ( '(', (引数, (助詞 | ，))*, ')' )?, 文*, 'ここまで' ;
 
 
 引数 = 式, (',', 式)* | 式, (読点, 式)* | '' ;
@@ -80,14 +90,14 @@ EOS = 改行 | ； | 句点 ;
 
 式 = //@siki
 //無名関数
-| 関数文
+  関数文
 | 関数文, 'したもの'
 | 式, ［, 式, ］
 | 式, '【', 式, '】'
 | 式, 参照記号, 名前
-| 前置演算子, 式 
+| 前置演算子, 式 //なでしこは後置演算子を認めない。日本語が関係詞を持たぬほど常に前から後ろを修飾するため。
 | 式, 二項演算子, 式
-| それ
+| 'それ'
 | 値
 | 変数
 | 配列
@@ -106,18 +116,14 @@ EOS = 改行 | ； | 句点 ;
 ;
 
 
-オブジェクト
-    : ｛ (属性 (， 属性)*)? ，? ｝
-    ;
+オブジェクト = ｛, (属性 (， 属性)*)?  ｝ ;
 
-属性
-    : 属性名 ： 式
+属性 = 属性名 ： 式
     | ［, 式, ］, ： 式
     | '【', 式, '】', ： 式
 //    | 属性名 '(' 引数?  ')'  '{' 文* '}'  
     ;
-属性名
-    : 名前
+属性名 = 名前
     | 文字列
     | 数値
     | ［ 式 ］
@@ -145,7 +151,7 @@ EOS = 改行 | ； | 句点 ;
 | 論理否定演算子 
 ;
 単項正値演算子 = ＋ ; //@tankouseitienzansi
-単項負値演算子 = ー ; //@tankouhutienzansi
+単項負値演算子 = － ; //@tankouhutienzansi
 ビット否定演算子 = ～ ; //@bittohiteienzansi
 論理否定演算子 = ！ ; //@ronrihiteienzansi
 
@@ -158,7 +164,7 @@ EOS = 改行 | ； | 句点 ;
 | 冪乗演算子
 ;
 加算演算子 = ＋ ; //@kasanenzansi
-減算演算子 = ー ; //@genzanenzansi
+減算演算子 = － ; //@genzanenzansi
 乗算演算子 = ＊ | × ; //@jouzanenzansi
 除算演算子 = ／ | ÷ ; //@josanenzansi
 剰余演算子 = ％ ; //@jouyoenzansi
@@ -209,147 +215,151 @@ EOS = 改行 | ； | 句点 ;
 ≦ = '≦' ; //@ikoorusyounari
 ≠ = '≠' ; //@nottoikooru
 
-ヌル=Ⓝ, Ⓤ, Ⓛ, Ⓛ
+
+ヌル = Ⓝ, Ⓤ, Ⓛ, Ⓛ ;
 真偽 = 真 | 偽 ;
-真 = 真  | Ⓣ, Ⓡ, Ⓤ, Ⓔ
-偽 = 偽  | Ⓕ, Ⓐ, Ⓛ, Ⓢ, Ⓔ
+真 = '真'  | Ⓣ, Ⓡ, Ⓤ, Ⓔ ;
+偽 = '偽'  | Ⓕ, Ⓐ, Ⓛ, Ⓢ, Ⓔ ;
 
-数値 = 非数 | 無限大 |十進数 | 二進数 | 八進数 | 十六進数 ; //@suuti
-十進数 = 整数, '.', [整数], [指数部] | '.', 整数, [指数部] | 整数, [指数部] ; //@jussinsuu
+数値 = 非数 | 無限大 | 二進数 | 八進数 | 十六進数 | 十進数 ; //@suuti
+十進数 = 整数, '.', 整数*, 指数部* | '.', 整数, 指数部* | 整数, 指数部* ; //@jussinsuu
 
-整数 = {十進数桁},{数値区切文字, {十進数桁}} //@seisuu
-指数部 = Ⓔ, [＋－] , 整数 ; //@sisuubu
-十六進数 = 零, Ⓧ, {十六進数桁}, [{数値区切文字, {十六進数桁}}+]; //@juurokusinsuu
-八進数 = 零, Ⓞ, {八進数桁}, [{数値区切文字, {八進数桁}}+]; //@hassinsuu
-二進数 = 零, Ⓑ, {二進数桁}, [{数値区切文字, {二進数桁}}+]; //@nisinsuu
+整数 = 十進数桁+, (数値区切文字, 十進数桁+)* ; //@seisuu
+指数部 = Ⓔ, ＋－* , 整数 ; //@sisuubu
+十六進数 = ０, Ⓧ, 十六進数桁+, (数値区切文字, 十六進数桁+)*; //@juurokusinsuu
+八進数 = ０, Ⓞ, 八進数桁+, (数値区切文字, 八進数桁+)*; //@hassinsuu
+二進数 = ０, Ⓑ, 二進数桁+, (数値区切文字, 二進数桁+)*; //@nisinsuu
 
 
 十六進数桁 = ０ | １ | ２ | ３ | ４ | ５ | ６ | ７ | ８ | ９ | Ⓐ | Ⓑ | Ⓒ | Ⓓ | Ⓔ | Ⓕ ; //@juurokusinsuuketa
 十進数桁 = ０ | １ | ２ | ３ | ４ | ５ | ６ | ７ | ８ | ９ ; //@jussinsuuketa
 八進数桁 = ０ | １ | ２ | ３ | ４ | ５ | ６ | ７ ; //@hassinsuuketa
-二進数桁 = ０ | １ ; //@nisinsuu
+二進数桁 = ０ | １ ; //@nisinsuuketa
 
 
-＋－ = ＋| ー ; //@purasukamainasu
-数値区切文字 = ＿ //@suutikugirimoji
+＋－ = ＋ | － ; //@purasukamainasu
+数値区切文字 = ＿ ; //@suutikugirimoji
 非数 = '非数' ; //@hisuu
 無限大 = '無限大' ; //@mugendai
 
-//文字リテラル
 文字列 = 
-| 埋め込み文字列
-| 展開文字列
-| 非展開文字列
+ 埋め込み文字列 
+| 展開文字列 
+| 非展開文字列 
 ;
 
-埋め込み文字列 = 'JS{{{', [{使用可能文字}], '}}}' ;
-展開文字列 = 'S{{{', [{(使用可能文字 | 展開部)}], '}}}' ;
-|'文字列{{{', [{(使用可能文字 | 展開部)}], '}}}'
-|'「', [{(使用可能文字 | 展開部)}], '」'
-|'“', [{(使用可能文字 | 展開部)}], '”'
-|'"', [{(使用可能文字 | 展開部)}], '"' ;
-非展開文字列 = '『', [{使用可能文字}], '』' ;
-|'R{{{', [{使用可能文字}], '}}}'
-|'\'', [{使用可能文字}], '\''
-展開部 = ｛, [{使用可能文字}], ｝ ;
+展開文字列中身 = ~(｝, ｝, ｝) . ; //@Tenkaimojiretunakami
+埋め込み文字列 = 'JS', ｛, ｛, ｛, 展開文字列中身*, ｝, ｝, ｝ ; //@umekomimojiretu
+展開文字列 = 'S', ｛, ｛, ｛,( 展開文字列中身 | 展開部)*, ｝, ｝, ｝ //@tenkaimojiretu
+| '文字列', ｛, ｛, ｛, ( 展開文字列中身 | 展開部)*, ｝, ｝, ｝
+| '「', ( ~'」' . | 展開部)*, '」'
+| '“', ( ~'”' . | 展開部)*, '”'
+| ＂, ( ~＂ . | 展開部)*, ＂
+;
+
+非展開文字列 = '『', ~'』'*, '』'  //@hitenkaimojiretu
+| 'R', ｛, ｛, ｛, 展開文字列中身*, ｝, ｝, ｝
+| ＇, ~＇*, ＇
+;
+展開部 = ｛, ., ｝ ; //@tenkaibu
+//展開部 = ｛, 式, ｝ ;
 
 
-
-！ = '!' | '！' //@kantanhu
-＂ = '"' | '＂' //@nujuuinyouhu
-＃ = '#' | '＃' //@igeta
-＄ = '$' | '＄' //@doru
-％ = '%' | '％' //@paasento
-＆ = '&' | '＆' //@anpasando
-＇ = '\'' | '＇ //@'itijuuinyouhu
-（ = '(' | '（' //@hidarimarukakko
-） = ')' | '）' //@migimarukakko
-＊ = '*' | '＊' //@asutarisuku
-＋ = '+' | '＋' //@purasu
-， = ',' | '，' //@konma
+！ = '!' | '！' ; //@Kantanhu
+＂ = '"' | '＂' ; //@Nijuuinyouhu
+＃ = '#' | '＃' ; //@Igeta
+＄ = '$' | '＄' ; //@Doru
+％ = '%' | '％' ; //@Paasento
+＆ = '&' | '＆' ; //@Anpasando
+＇ = '\'' | '＇' ; //@Itijuuinyouhu
+（ = '(' | '（' ; //@Hidarimarukakko
+） = ')' | '）' ; //@Migimarukakko
+＊ = '*' | '＊' ; //@Asutarisuku
+＋ = '+' | '＋' ; //@Purasu
+， = ',' | '，' ; //@Konma
 //－ = '-' | '－'
-． = '.' | '．' //@piriodo
-／ = '/' | '／' //@surassyu
-０ = '0' | '０' //@zero
-１ = '1' | '１' //@iti
-２ = '2' | '２' //@ni
-３ = '3' | '３' //@san
-４ = '4' | '４' //@yon
-５ = '5' | '５' //@go
-６ = '6' | '６' //@roku
-７ = '7' | '７' //@nana
-８ = '8' | '８' //@hati
-９ = '9' | '９' //@kyuu
-： = ':' | '：' //@koron
-； = ';' | '；' //@semikoron
-＜ = '<' | '＜' //@hidariyamakakko
-＝ = '=' | '＝' //@tougou
-＞ = '>' | '＞' //@migiyamakakko
-？ = '?' | '？' //@gimonhu
-＠ = '@' | '＠' //@attomaaku
-Ａ = 'A' | 'Ａ' //@daiee
-Ｂ = 'B' | 'Ｂ' //@daibii
-Ｃ = 'C' | 'Ｃ' //@daisuxii
-Ｄ = 'D' | 'Ｄ' //@daidexii
-Ｅ = 'E' | 'Ｅ' //@daiii
-Ｆ = 'F' | 'Ｆ' //@daiefu
-Ｇ = 'G' | 'Ｇ' //@daigii
-Ｈ = 'H' | 'Ｈ' //@daiheiti
-Ｉ = 'I' | 'Ｉ' //@daiai
-Ｊ = 'J' | 'Ｊ' //@daijei
-Ｋ = 'K' | 'Ｋ' //@daikei
-Ｌ = 'L' | 'Ｌ' //@daielu
-Ｍ = 'M' | 'Ｍ' //@daiemu
-Ｎ = 'N' | 'Ｎ' //@daienu
-Ｏ = 'O' | 'Ｏ' //@daioo
-Ｐ = 'P' | 'Ｐ' //@daipii
-Ｑ = 'Q' | 'Ｑ' //@daiquu
-Ｒ = 'R' | 'Ｒ' //@daiarru
-Ｓ = 'S' | 'Ｓ' //@daiesu
-Ｔ = 'T' | 'Ｔ' //@daitexii
-Ｕ = 'U' | 'Ｕ' //@daiyuu
-Ｖ = 'V' | 'Ｖ' //@daivui
-Ｗ = 'W' | 'Ｗ' //@daidaburyuu
-Ｘ = 'X' | 'Ｘ' //@daiekkusu
-Ｙ = 'Y' | 'Ｙ' //@daiwai
-Ｚ = 'Z' | 'Ｚ' //@daizeddo
-［ = '[' | '［' //@hidarikakukakko
-＼ = '\' | '＼' //@bakkusurassyu
-］ = ']' | '］' //@migikakukakko
-＾ = '^' | '＾' //@hatto
-＿ = '_' | '＿' //@andaabaa
-｀ = '`' | '｀' //@bakkukuooto
-ａ = 'a' | 'ａ' //@syouee
-ｂ = 'b' | 'ｂ' //@syoubii
-ｃ = 'c' | 'ｃ' //@syousuxii
-ｄ = 'd' | 'ｄ' //@syoudexii
-ｅ = 'e' | 'ｅ' //@syouii
-ｆ = 'f' | 'ｆ' //@syouefu
-ｇ = 'g' | 'ｇ' //@syougii
-ｈ = 'h' | 'ｈ' //@syouheiti
-ｉ = 'i' | 'ｉ' //@syouai
-ｊ = 'j' | 'ｊ' //@syoujei
-ｋ = 'k' | 'ｋ' //@syoukei
-ｌ = 'l' | 'ｌ' //@syouelu
-ｍ = 'm' | 'ｍ' //@syouemu
-ｎ = 'n' | 'ｎ' //@syouenu
-ｏ = 'o' | 'ｏ' //@syouoo
-ｐ = 'p' | 'ｐ' //@syoupii
-ｑ = 'q' | 'ｑ' //@syouquu
-ｒ = 'r' | 'ｒ' //@syouarru
-ｓ = 's' | 'ｓ' //@syouesu
-ｔ = 't' | 'ｔ' //@syoutexii
-ｕ = 'u' | 'ｕ' //@syouyuu
-ｖ = 'v' | 'ｖ' //@syouvui
-ｗ = 'w' | 'ｗ' //@syoudaburyuu
-ｘ = 'x' | 'ｘ' //@syouekkusu
-ｙ = 'y' | 'ｙ' //@syouwai
-ｚ = 'z' | 'ｚ' //@syouzeddo
-｛ = '{' | '｛' //@hidarinamikakko
-｜ = '|' | '｜' //@baatexikarubaa
-｝ = '}' | '｝' //@miginamikakko
-～ = チルダ //@hitei
-ー = ハイフン | 長音符 ; //@mainasu@
+． = '.' | '．' ; //@Piriodo
+／ = '/' | '／' ; //@Surassyu
+０ = '0' | '０' ; //@Zero
+１ = '1' | '１' ; //@Iti
+２ = '2' | '２' ; //@Ni
+３ = '3' | '３' ; //@San
+４ = '4' | '４' ; //@Yon
+５ = '5' | '５' ; //@Go
+６ = '6' | '６' ; //@Roku
+７ = '7' | '７' ; //@Nana
+８ = '8' | '８' ; //@Hati
+９ = '9' | '９' ; //@Kyuu
+： = ':' | '：' ; //@Koron
+； = ';' | '；' ; //@Semikoron
+＜ = '<' | '＜' ; //@Hidariyamakakko
+＝ = '=' | '＝' ; //@Tougou
+＞ = '>' | '＞' ; //@Migiyamakakko
+？ = '?' | '？' ; //@Gimonhu
+＠ = '@' | '＠' ; //@Attomaaku
+Ａ = 'A' | 'Ａ' ; //@daiee
+Ｂ = 'B' | 'Ｂ' ; //@daibii
+Ｃ = 'C' | 'Ｃ' ; //@daisuxii
+Ｄ = 'D' | 'Ｄ' ; //@daidexii
+Ｅ = 'E' | 'Ｅ' ; //@daiii
+Ｆ = 'F' | 'Ｆ' ; //@daiefu
+Ｇ = 'G' | 'Ｇ' ; //@daigii
+Ｈ = 'H' | 'Ｈ' ; //@daiheiti
+Ｉ = 'I' | 'Ｉ' ; //@daiai
+Ｊ = 'J' | 'Ｊ' ; //@daijei
+Ｋ = 'K' | 'Ｋ' ; //@daikei
+Ｌ = 'L' | 'Ｌ' ; //@daielu
+Ｍ = 'M' | 'Ｍ' ; //@daiemu
+Ｎ = 'N' | 'Ｎ' ; //@daienu
+Ｏ = 'O' | 'Ｏ' ; //@daioo
+Ｐ = 'P' | 'Ｐ' ; //@daipii
+Ｑ = 'Q' | 'Ｑ' ; //@daiquu
+Ｒ = 'R' | 'Ｒ' ; //@daiarru
+Ｓ = 'S' | 'Ｓ' ; //@daiesu
+Ｔ = 'T' | 'Ｔ' ; //@daitexii
+Ｕ = 'U' | 'Ｕ' ; //@daiyuu
+Ｖ = 'V' | 'Ｖ' ; //@daivui
+Ｗ = 'W' | 'Ｗ' ; //@daidaburyuu
+Ｘ = 'X' | 'Ｘ' ; //@daiekkusu
+Ｙ = 'Y' | 'Ｙ' ; //@daiwai
+Ｚ = 'Z' | 'Ｚ' ; //@daizeddo
+［ = '[' | '［' ; //@Hidarikakukakko
+＼ = '\\' | '＼' ; //@Bakkusurassyu
+］ = ']' | '］' ; //@Migikakukakko
+＾ = '^' | '＾' ; //@Hatto
+＿ = '_' | '＿' ; //@Andaabaa
+｀ = '`' | '｀' ; //@Bakkukuooto
+ａ = 'a' | 'ａ' ; //@syouee
+ｂ = 'b' | 'ｂ' ; //@syoubii
+ｃ = 'c' | 'ｃ' ; //@syousuxii
+ｄ = 'd' | 'ｄ' ; //@syoudexii
+ｅ = 'e' | 'ｅ' ; //@syouii
+ｆ = 'f' | 'ｆ' ; //@syouefu
+ｇ = 'g' | 'ｇ' ; //@syougii
+ｈ = 'h' | 'ｈ' ; //@syouheiti
+ｉ = 'i' | 'ｉ' ; //@syouai
+ｊ = 'j' | 'ｊ' ; //@syoujei
+ｋ = 'k' | 'ｋ' ; //@syoukei
+ｌ = 'l' | 'ｌ' ; //@syouelu
+ｍ = 'm' | 'ｍ' ; //@syouemu
+ｎ = 'n' | 'ｎ' ; //@syouenu
+ｏ = 'o' | 'ｏ' ; //@syouoo
+ｐ = 'p' | 'ｐ' ; //@syoupii
+ｑ = 'q' | 'ｑ' ; //@syouquu
+ｒ = 'r' | 'ｒ' ; //@syouarru
+ｓ = 's' | 'ｓ' ; //@syouesu
+ｔ = 't' | 'ｔ' ; //@syoutexii
+ｕ = 'u' | 'ｕ' ; //@syouyuu
+ｖ = 'v' | 'ｖ' ; //@syouvui
+ｗ = 'w' | 'ｗ' ; //@syoudaburyuu
+ｘ = 'x' | 'ｘ' ; //@syouekkusu
+ｙ = 'y' | 'ｙ' ; //@syouwai
+ｚ = 'z' | 'ｚ' ; //@syouzeddo
+｛ = '{' | '｛' ; //@Hidarinamikakko
+｜ = '|' | '｜' ; //@Baatexikarubaa
+｝ = '}' | '｝' ; //@Miginamikakko
+～ = チルダ ; //@Hitei
+－ = ハイフン | 長音符 ; //@Mainasu@
 Ⓐ = ａ | Ａ ; //@hikubetuee
 Ⓑ = ｂ | Ｂ ; //@hikubetubii
 Ⓒ = ｃ | Ｃ ; //@hikubetusuxii
@@ -377,13 +387,199 @@ EOS = 改行 | ； | 句点 ;
 Ⓨ = ｙ | Ｙ ; //@hikubetuwai
 Ⓩ = ｚ | Ｚ ; //@hikubetuzeddo
 
+半角！ = '!'  ; //@HangakuKantanhu
+半角＂ = '"'  ; //@HangakuNijuuinyouhu
+半角＃ = '#'  ; //@HangakuIgeta
+半角＄ = '$'  ; //@HangakuDoru
+半角％ = '%'  ; //@HangakuPaasento
+半角＆ = '&'  ; //@HangakuAnpasando
+半角＇ = '\'' ; //@HangakuItijuuinyouhu
+半角（ = '('  ; //@HangakuHidarimarukakko
+半角） = ')'  ; //@HangakuMigimarukakko
+半角＊ = '*'  ; //@HangakuAsutarisuku
+半角＋ = '+'  ; //@HangakuPurasu
+半角， = ','  ; //@HangakuKonma
+半角． = '.'  ; //@HangakuPiriodo
+半角／ = '/'  ; //@HangakuSurassyu
+半角０ = '0'  ; //@HangakuZero
+半角１ = '1'  ; //@HangakuIti
+半角２ = '2'  ; //@HangakuNi
+半角３ = '3'  ; //@HangakuSan
+半角４ = '4'  ; //@HangakuYon
+半角５ = '5'  ; //@HangakuGo
+半角６ = '6'  ; //@HangakuRoku
+半角７ = '7'  ; //@HangakuNana
+半角８ = '8'  ; //@HangakuHati
+半角９ = '9'  ; //@HangakuKyuu
+半角： = ':'  ; //@HangakuKoron
+半角； = ';'  ; //@HangakuSemikoron
+半角＜ = '<'  ; //@HangakuHidariyamakakko
+半角＝ = '='  ; //@HangakuTougou
+半角＞ = '>'  ; //@HangakuMigiyamakakko
+半角？ = '?'  ; //@HangakuGimonhu
+半角＠ = '@'  ; //@HangakuAttomaaku
+半角Ａ = 'A'  ; //@Hangakudaiee
+半角Ｂ = 'B'  ; //@Hangakudaibii
+半角Ｃ = 'C'  ; //@Hangakudaisuxii
+半角Ｄ = 'D'  ; //@Hangakudaidexii
+半角Ｅ = 'E'  ; //@Hangakudaiii
+半角Ｆ = 'F'  ; //@Hangakudaiefu
+半角Ｇ = 'G'  ; //@Hangakudaigii
+半角Ｈ = 'H'  ; //@Hangakudaiheiti
+半角Ｉ = 'I'  ; //@Hangakudaiai
+半角Ｊ = 'J'  ; //@Hangakudaijei
+半角Ｋ = 'K'  ; //@Hangakudaikei
+半角Ｌ = 'L'  ; //@Hangakudaielu
+半角Ｍ = 'M'  ; //@Hangakudaiemu
+半角Ｎ = 'N'  ; //@Hangakudaienu
+半角Ｏ = 'O'  ; //@Hangakudaioo
+半角Ｐ = 'P'  ; //@Hangakudaipii
+半角Ｑ = 'Q'  ; //@Hangakudaiquu
+半角Ｒ = 'R'  ; //@Hangakudaiarru
+半角Ｓ = 'S'  ; //@Hangakudaiesu
+半角Ｔ = 'T'  ; //@Hangakudaitexii
+半角Ｕ = 'U'  ; //@Hangakudaiyuu
+半角Ｖ = 'V'  ; //@Hangakudaivui
+半角Ｗ = 'W'  ; //@Hangakudaidaburyuu
+半角Ｘ = 'X'  ; //@Hangakudaiekkusu
+半角Ｙ = 'Y'  ; //@Hangakudaiwai
+半角Ｚ = 'Z'  ; //@Hangakudaizeddo
+半角［ = '['  ; //@HangakuHidarikakukakko
+半角＼ = '\\' ; //@HangakuBakkusurassyu
+半角］ = ']'  ; //@HangakuMigikakukakko
+半角＾ = '^'  ; //@HangakuHatto
+半角＿ = '_'  ; //@HangakuAndaabaa
+半角｀ = '`'  ; //@HangakuBakkukuooto
+半角ａ = 'a'  ; //@Hangakusyouee
+半角ｂ = 'b'  ; //@Hangakusyoubii
+半角ｃ = 'c'  ; //@Hangakusyousuxii
+半角ｄ = 'd'  ; //@Hangakusyoudexii
+半角ｅ = 'e'  ; //@Hangakusyouii
+半角ｆ = 'f'  ; //@Hangakusyouefu
+半角ｇ = 'g'  ; //@Hangakusyougii
+半角ｈ = 'h'  ; //@Hangakusyouheiti
+半角ｉ = 'i'  ; //@Hangakusyouai
+半角ｊ = 'j'  ; //@Hangakusyoujei
+半角ｋ = 'k'  ; //@Hangakusyoukei
+半角ｌ = 'l'  ; //@Hangakusyouelu
+半角ｍ = 'm'  ; //@Hangakusyouemu
+半角ｎ = 'n'  ; //@Hangakusyouenu
+半角ｏ = 'o'  ; //@Hangakusyouoo
+半角ｐ = 'p'  ; //@Hangakusyoupii
+半角ｑ = 'q'  ; //@Hangakusyouquu
+半角ｒ = 'r'  ; //@Hangakusyouarru
+半角ｓ = 's'  ; //@Hangakusyouesu
+半角ｔ = 't'  ; //@Hangakusyoutexii
+半角ｕ = 'u'  ; //@Hangakusyouyuu
+半角ｖ = 'v'  ; //@Hangakusyouvui
+半角ｗ = 'w'  ; //@Hangakusyoudaburyuu
+半角ｘ = 'x'  ; //@Hangakusyouekkusu
+半角ｙ = 'y'  ; //@Hangakusyouwai
+半角ｚ = 'z'  ; //@Hangakusyouzeddo
+半角｛ = '{'  ; //@HangakuHidarinamikakko
+半角｜ = '|'  ; //@HangakuBaatexikarubaa
+半角｝ = '}'  ; //@HangakuMiginamikakko
+
+全角！ =  '！' ; //@ZengakuKantanhu
+全角＂ =  '＂' ; //@ZengakuNijuuinyouhu
+全角＃ =  '＃' ; //@ZengakuIgeta
+全角＄ =  '＄' ; //@ZengakuDoru
+全角％ =  '％' ; //@ZengakuPaasento
+全角＆ =  '＆' ; //@ZengakuAnpasando
+全角＇ =  '＇' ; //@ZengakuItijuuinyouhu
+全角（ =  '（' ; //@ZengakuHidarimarukakko
+全角） =  '）' ; //@ZengakuMigimarukakko
+全角＊ =  '＊' ; //@ZengakuAsutarisuku
+全角＋ =  '＋' ; //@ZengakuPurasu
+全角， =  '，' ; //@ZengakuKonma
+全角． =  '．' ; //@ZengakuPiriodo
+全角／ =  '／' ; //@ZengakuSurassyu
+全角０ =  '０' ; //@ZengakuZero
+全角１ =  '１' ; //@ZengakuIti
+全角２ =  '２' ; //@ZengakuNi
+全角３ =  '３' ; //@ZengakuSan
+全角４ =  '４' ; //@ZengakuYon
+全角５ =  '５' ; //@ZengakuGo
+全角６ =  '６' ; //@ZengakuRoku
+全角７ =  '７' ; //@ZengakuNana
+全角８ =  '８' ; //@ZengakuHati
+全角９ =  '９' ; //@ZengakuKyuu
+全角： =  '：' ; //@ZengakuKoron
+全角； =  '；' ; //@ZengakuSemikoron
+全角＜ =  '＜' ; //@ZengakuHidariyamakakko
+全角＝ =  '＝' ; //@ZengakuTougou
+全角＞ =  '＞' ; //@ZengakuMigiyamakakko
+全角？ =  '？' ; //@ZengakuGimonhu
+全角＠ =  '＠' ; //@ZengakuAttomaaku
+全角Ａ =  'Ａ' ; //@Zengakudaiee
+全角Ｂ =  'Ｂ' ; //@Zengakudaibii
+全角Ｃ =  'Ｃ' ; //@Zengakudaisuxii
+全角Ｄ =  'Ｄ' ; //@Zengakudaidexii
+全角Ｅ =  'Ｅ' ; //@Zengakudaiii
+全角Ｆ =  'Ｆ' ; //@Zengakudaiefu
+全角Ｇ =  'Ｇ' ; //@Zengakudaigii
+全角Ｈ =  'Ｈ' ; //@Zengakudaiheiti
+全角Ｉ =  'Ｉ' ; //@Zengakudaiai
+全角Ｊ =  'Ｊ' ; //@Zengakudaijei
+全角Ｋ =  'Ｋ' ; //@Zengakudaikei
+全角Ｌ =  'Ｌ' ; //@Zengakudaielu
+全角Ｍ =  'Ｍ' ; //@Zengakudaiemu
+全角Ｎ =  'Ｎ' ; //@Zengakudaienu
+全角Ｏ =  'Ｏ' ; //@Zengakudaioo
+全角Ｐ =  'Ｐ' ; //@Zengakudaipii
+全角Ｑ =  'Ｑ' ; //@Zengakudaiquu
+全角Ｒ =  'Ｒ' ; //@Zengakudaiarru
+全角Ｓ =  'Ｓ' ; //@Zengakudaiesu
+全角Ｔ =  'Ｔ' ; //@Zengakudaitexii
+全角Ｕ =  'Ｕ' ; //@Zengakudaiyuu
+全角Ｖ =  'Ｖ' ; //@Zengakudaivui
+全角Ｗ =  'Ｗ' ; //@Zengakudaidaburyuu
+全角Ｘ =  'Ｘ' ; //@Zengakudaiekkusu
+全角Ｙ =  'Ｙ' ; //@Zengakudaiwai
+全角Ｚ =  'Ｚ' ; //@Zengakudaizeddo
+全角［ =  '［' ; //@ZengakuHidarikakukakko
+全角＼ =  '＼' ; //@ZengakuBakkusurassyu
+全角］ =  '］' ; //@ZengakuMigikakukakko
+全角＾ =  '＾' ; //@ZengakuHatto
+全角＿ =  '＿' ; //@ZengakuAndaabaa
+全角｀ =  '｀' ; //@ZengakuBakkukuooto
+全角ａ =  'ａ' ; //@Zengakusyouee
+全角ｂ =  'ｂ' ; //@Zengakusyoubii
+全角ｃ =  'ｃ' ; //@Zengakusyousuxii
+全角ｄ =  'ｄ' ; //@Zengakusyoudexii
+全角ｅ =  'ｅ' ; //@Zengakusyouii
+全角ｆ =  'ｆ' ; //@Zengakusyouefu
+全角ｇ =  'ｇ' ; //@Zengakusyougii
+全角ｈ =  'ｈ' ; //@Zengakusyouheiti
+全角ｉ =  'ｉ' ; //@Zengakusyouai
+全角ｊ =  'ｊ' ; //@Zengakusyoujei
+全角ｋ =  'ｋ' ; //@Zengakusyoukei
+全角ｌ =  'ｌ' ; //@Zengakusyouelu
+全角ｍ =  'ｍ' ; //@Zengakusyouemu
+全角ｎ =  'ｎ' ; //@Zengakusyouenu
+全角ｏ =  'ｏ' ; //@Zengakusyouoo
+全角ｐ =  'ｐ' ; //@Zengakusyoupii
+全角ｑ =  'ｑ' ; //@Zengakusyouquu
+全角ｒ =  'ｒ' ; //@Zengakusyouarru
+全角ｓ =  'ｓ' ; //@Zengakusyouesu
+全角ｔ =  'ｔ' ; //@Zengakusyoutexii
+全角ｕ =  'ｕ' ; //@Zengakusyouyuu
+全角ｖ =  'ｖ' ; //@Zengakusyouvui
+全角ｗ =  'ｗ' ; //@Zengakusyoudaburyuu
+全角ｘ =  'ｘ' ; //@Zengakusyouekkusu
+全角ｙ =  'ｙ' ; //@Zengakusyouwai
+全角ｚ =  'ｚ' ; //@Zengakusyouzeddo
+全角｛ =  '｛' ; //@ZengakuHidarinamikakko
+全角｜ =  '｜' ; //@ZengakuBaatexikarubaa
+全角｝ =  '｝' ; //@ZengakuMiginamikakko
 
 
-長音符 =
+
+長音符 = //@Tyouonhu
   [\u30FC] //KATAKANA-HIRAGANA PROLONGED SOUND MARK
 | [\uFF70] //HALFWIDTH KATAKANA-HIRAGANA PROLONGED SOUND MARK
 ;
-ハイフン = '-'  
+ハイフン = '-'  //@Haihun
 | [\u2010]
 | [\u2011]
 | [\u2013]
@@ -391,14 +587,15 @@ EOS = 改行 | ； | 句点 ;
 | [\u2015]
 | [\u2212]
 ;
-チルダ = '~'
+チルダ = '~' //@Tiruda
 | [\u02dc]
 | [\u02F7]
 | [\u2053]
 | [\u223c]
 | [\u301c]
 | [\uFF5E]
-空白 = ' '
+;
+空白 = ' ' //@Kuuhaku
 | [\u2000]
 | [\u2002]
 | [\u2003]
@@ -414,17 +611,14 @@ EOS = 改行 | ； | 句点 ;
 | [\u3000]
 | [\u3164]
 | タブ
-タブ = '\t' | '\v'
+;
+タブ = '\t' ; //@Tabu
 
+改行 = '\r\n' | '\n' | '\r' ;
+句点 = '。' ;
 
-
-改行 = '\r\n' | '\n' | '\r'
-句点 = '。'
-
-
-
-使用可能文字 = ユニコード
-ユニコード: [\u0041-\u005A]
+使用可能文字 = ユニコード ; //@Siyoukanoumoji
+ユニコード = [\u0041-\u005A] //@Yunikoodo
     | [\u0061-\u007A]
     | [\u00AA]
     | [\u00B5]
@@ -684,3 +878,4 @@ EOS = 改行 | ； | 句点 ;
     | [\uFFD2-\uFFD7]
     | [\uFFDA-\uFFDC]
     ;
+
