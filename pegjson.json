@@ -1,0 +1,136 @@
+{
+    "0": "{  var TYPES_TO_PROPERTY_NAMES = {\n    CallExpression:   \"callee\",\n    MemberExpression: \"object\",\n  };\n  function filledArray(count, value) {\n    return Array.apply(null, new Array(count))\n      .map(function() { return value; });\n  }\n  function extractOptional(optional, index) {\n    return optional ? optional[index] : null;\n  }\n  function extractList(list, index) {\n    return list.map(function(element) { return element[index]; });\n  }\n  function buildList(head, tail, index) {\n    return [head].concat(extractList(tail, index));\n  }\n  function buildBinaryExpression(head, tail) {\n    return tail.reduce(function(result, element) {\n      return {\n        type: \"BinaryExpression\",\n        operator: element[1],\n        left: result,\n        right: element[3]\n      };\n    }, head);\n  }\n  function buildLogicalExpression(head, tail) {\n    return tail.reduce(function(result, element) {\n      return {\n        type: \"LogicalExpression\",\n        operator: element[1],\n        left: result,\n        right: element[3]\n      };\n    }, head);\n  }\n  function optionalList(value) {\n    return value !== null ? value : [];\n  }\n  function parseNumber(n){\n    return Number(n.replace(/[Ａ-Ｚａ-ｚ０-９＿]/g,(s)=>{return String.fromCharCode(s.charCodeAt(0) - 0xFEE0)}).replace(/_/g,''))\n  }\n}",
+    "識別子": "{ return name; }",
+    "変数": "{\n      return {\n        type: \"word\",\n        value: name\n      }\n    }",
+    "名前": "{ return head + tail.join(\"\") }",
+    "名前始": "{ return sequence; }",
+    "ひらがな": "{ return text(); }",
+    "ヌル": "{ return { type: \"Literal\", value: null }  }",
+    "真偽": {
+        "0": "{ return { type: \"Literal\", value: true  }  }",
+        "1": "{ return { type: \"Literal\", value: false }  }"
+    },
+    "数値": "{\n      return literal;\n    }",
+    "十進数": "{\n      return { type: \"Literal\", value: parseNumber(text()) }\n     }",
+    "十六進数": "{\n      return { type: \"Literal\", value: parseNumber(text()) }\n     }",
+    "八進数": "{\n      return { type: \"Literal\", value: parseNumber(text()) }\n     }",
+    "二進数": "{\n      return { type: \"Literal\", value: parseNumber(text()) }\n     }",
+    "非数": "{\n      return NaN;\n    }",
+    "無限大": "{\n      return Infinity;\n    }",
+    "文字": "{      return text()     }",
+    "埋め込み文字列": "{\n      return { type: \"Literal\", value: string }\n     }",
+    "展開文字列": "{\n      return { type: \"TemplateLiteral\", quasis: elements }\n     }",
+    "非展開文字列": {
+        "0": "{\n      return { type: \"Literal\", value: chars.join(\"\") }\n     }",
+        "1": "{\n      return { type: \"Literal\", value: string }\n     }"
+    },
+    "基本式": {
+        "0": "{ return { type: \"ThisExpression\" }",
+        "1": "{ return expression; }"
+    },
+    "それ": "{\n      return {\n        type: \"word\",\n        value: \"それ\"\n      }\n    }",
+    "これ": "{\n      return {\n        type: \"word\",\n        value: \"これ\"\n      }\n    }",
+    "配列": {
+        "0": "{\n      return {\n        type: \"ArrayExpression\",\n        elements: optionalList(extractOptional(elision, 0))\n      }\n    }",
+        "1": "{\n      return {\n        type: \"ArrayExpression\",\n        elements: elements\n      }\n    }",
+        "2": "{\n      return {\n        type: \"ArrayExpression\",\n        elements: elements.concat(optionalList(extractOptional(elision, 0)))\n      }\n    }"
+    },
+    "配列要素": {
+        "0": "{\n        return optionalList(extractOptional(elision, 0)).concat(element);\n      }",
+        "1": "{ return Array.prototype.concat.apply(head, tail); }"
+    },
+    "配列要略": "{ return filledArray(commas.length + 1, null); }",
+    "オブジェクト": {
+        "0": "{ return { type: \"ObjectExpression\", properties: [] }; }",
+        "1": "{\n       return { type: \"ObjectExpression\", properties: properties }\n     }"
+    },
+    "属性一覧": "{\n      return buildList(head, tail, 3);\n    }",
+    "属性割り当て": {
+        "0": "{\n      return { type: \"Property\", key: key, value: value, kind: \"init\" };\n    }",
+        "1": "{\n      return { type: \"Property\",computed: true, key: key, value: value, kind: \"init\" };\n    }"
+    },
+    "参照式": {
+        "0": "{\n          return { property: property, computed: true };\n        }",
+        "1": "{\n          return { property: property, computed: false };\n        }",
+        "2": "{\n      return tail.reduce(function(result, element) {\n        return {\n          type: \"MemberExpression\",\n          object: result,\n          property: element.property,\n          computed: element.computed\n        };\n      }, head);\n    }"
+    },
+    "呼出式": {
+        "0": "{\n        return { type: \"CallExpression\", callee: callee, arguments: args };\n        }",
+        "1": "{\n          return { type: \"CallExpression\", arguments: args };\n        }",
+        "2": "{\n          return {\n            type: \"MemberExpression\",\n            property: property,\n            computed: true\n          };\n        }",
+        "3": "{\n          return {\n            type: \"MemberExpression\",\n            property: property,\n            computed: false\n          };\n        }",
+        "4": "{\n      return tail.reduce(function(result, element) {\n        element[TYPES_TO_PROPERTY_NAMES[element.type]] = result;\n\n        return element;\n      }, head);\n    }"
+    },
+    "前置式": "{\n      \"UnaryExpression\";\n\n      return {\n        type: \"UnaryExpression\",\n        operator: operator,\n        argument: argument,\n        prefix: true\n      };\n    }",
+    "乗除式": "{ return buildBinaryExpression(head, tail); }",
+    "加減式": "{ return buildBinaryExpression(head, tail); }",
+    "連結式": "{ return buildBinaryExpression(head, tail); }",
+    "ビットシフト式": "{ return buildBinaryExpression(head, tail); }",
+    "比較式": "{ return buildBinaryExpression(head, tail); }",
+    "等価式": "{ return buildBinaryExpression(head, tail); }",
+    "論理積式": "{ return buildLogicalExpression(head, tail); }",
+    "論理和式": "{ return buildLogicalExpression(head, tail); }",
+    "式": "{\n      return head;\n    }",
+    "文": "{ return block; }",
+    "まとまり": {
+        "0": "{      return optionalList(extractOptional(block, 0))    }",
+        "1": "{      return [block]    }"
+    },
+    "段落": "{ return buildList(head, tail, 1); }",
+    "空文": "{ return { type: \"EmptyStatement\" } }",
+    "条件文":{
+    "0": "{\n  sitei.push(jiyo)\n  return sitei.reverse().reduce((a, b) => {\n    return {\n      type: \"if\",\n      test: b[0],\n      consequent: b[1],\n      alternate: a\n    }\n  })\n}",
+    "1": "{\n  return sitei.reverse().reduce((a, b) => {\n    return {\n      type: \"if\",\n      test: b[0],\n      consequent: b[1],\n      alternate: a\n    }\n  })\n}"
+    },
+    "指定部": "{ return [test, consequent] }",
+    "自余部": "{ return alternate }",
+    "エラー監視文": {
+        "0": "{\n  return {\n    type: \"try\",\n    block: block,\n    err_block: err_block,\n    fin_block: fin_block\n  }\n}",
+        "1": "{\n  return {\n    type: \"try\",\n    block: block,\n    err_block: err_block,\n    fin_block: null\n  }\n}"
+    },
+    "エラー監視部文": "{ return block }",
+    "逐次実行文": {
+        "0": "{ \n    return { \n      type: \"sequential\", \n      block: null\n    }\n  }",
+        "1": "{ \n    return { \n      type: \"sequential\", \n      block: buildList(head, tail, 3)\n    }\n  }"
+    },
+    "関数定義文": "{ \n    return { \n      type: \"def_func\", \n      id: id,\n      param: param,\n      block: block\n    }\n  }",
+    "助詞引数": "{\n      return args.reduce((a,b)=>{const obj={};obj.id=b[0];obj.josi=b[1];a.push(obj);return a},[]);\n    }",
+    "列挙引数": "{\n      return buildList(head, tail, 2);\n    }",
+    "戻る文": "{ \n    return { \n      type: \"return\", \n      argument: argument ? argument[0] : null\n    }\n  }",
+    "抜ける文": "{ \n    return {       type: \"break\"    }\n  }",
+    "続ける文": "{ \n    return {       type: \"continue\"    }\n  }",
+    "継承文": "{ \n    return { \n      type: \"extends\", \n      super: super_class\n    }\n  }",
+    "初期化文": {
+        "0": "{ \n    return { \n      type: \"constructor\",\n      block: {\n        type: \"func\",\n        callee: callee,\n        args: []\n      }\n    }\n  }",
+        "1": "{ \n    return { \n      type: \"constructor\",\n      block: block\n    }\n  }"
+    },
+    "代入文": "{\n      return {\n        type: \"let\",\n        operator: operator,\n        left: left,\n        right: right\n      }\n  }",
+    "宣言部": {
+        "0": "{\n      return {\n        type: \"def_local_var\",\n        operator: \"=\",\n        left: left,\n        vartype: \"定数\",\n        right: right\n      }\n  }",
+        "1": "{\n      return {\n        type: \"def_local_var\",\n        operator: \"=\",\n        left: left,\n        vartype: \"変数\",\n        right: right\n      }\n  }"
+    },
+    "初期化部": "{ return expression; }",
+    "繰返文": {
+        "0": "{ \n    return { \n      type: \"repeat\", \n      from: null,\n      to: to,\n      block: block\n    }\n  }",
+        "1": "{ \n    return { \n      type: \"repeat\", \n      from: from,\n      to: to,\n      variable: variable[0],\n      block: block\n    }\n  }",
+        "2": "{ \n    return { \n      type: \"while\", \n      test: test,\n      block: block\n    }\n  }"
+    },
+    "反復文": {
+        "0": "{ \n    return { \n      type: \"foreach\", \n      variable: variable,\n      target: target,\n      block: block\n    }\n  }",
+        "1": "{ \n    return { \n      type: \"foreach\", \n      variable: null,\n      target: target,\n      block: block\n    }\n  }"
+    },
+    "生成文": "{ \n    return { \n      type: \"new\", \n      callee: callee,\n      args: args ? args[1] : null     }\n  }",
+    "取込文": {
+        "0": "{ \n    return { \n      type: \"import\", \n      source: source,\n      specifiers: specifiers.map( e => {\n        return {\n          id: e[0],\n          alias: e[3]\n        }\n      }),\n      alias: null\n    }\n  }",
+        "1": "{ \n    return { \n      type: \"import\", \n      source: source,\n      specifiers: specifiers === null ? [] :\n        [\n          {\n            id:specifiers[2],\n            alias:null\n          }\n        ],\n      alias: alias ? alias[0] : null\n    }\n  }"
+    },
+    "取出文": {
+        "0": "{ \n    return { \n      type: \"export\", \n      source: source,\n      specifiers: specifiers.map( e => {\n        return {\n          id: e[0],\n          alias: e[3]\n        }\n      }),\n      alias: null\n    }\n  }",
+        "1": "{ \n    return { \n      type: \"export\", \n      source: source,\n      specifiers: specifiers === null ? [] :\n        [\n          {\n            id:specifiers[2],\n            alias:null\n          }\n        ],\n      alias: alias[0]\n    }\n  }"
+    },
+    "関数文": "{\n        return { type: \"func\", callee: callee, arguments: args };\n        }",
+    "デバッグ文": "{        return { type: \"debugger\" }        }",
+    "文節": "{head.josi=body;return head}",
+    "プログラム": "{\n      return {\n        type: \"Program\",\n        block: optionalList(body)\n      }\n    }",
+    "文章": "{\n      return buildList(head, tail, 1);\n    }"
+}

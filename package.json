@@ -1,0 +1,21 @@
+{
+  "name": "pe",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "bnf2peg": "cnako3 scripts/bnf2peg",
+    "peg2js": "node scripts/peg2js",
+    "bnf2js": "npm-run-all -s bnf2peg peg2js",
+    "test": "mocha --delay"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "pegjs": "^0.10.0"
+  },
+  "devDependencies": {
+    "mocha": "^7.1.0",
+    "npm-run-all": "^4.1.5"
+  }
+}
