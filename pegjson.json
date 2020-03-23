@@ -24,8 +24,9 @@
         "0": "{\n      return { type: \"Literal\", value: chars.join(\"\") }\n     }",
         "1": "{\n      return { type: \"Literal\", value: string }\n     }"
     },
+    "無名関数式": "{\n      return {\n        type: \"AnonymousFunctionExpression\",\n        params: mumei.params,\n        block: mumei.block\n      }\n    }",
     "基本式": {
-        "0": "{ return { type: \"ThisExpression\" }",
+        "0": "{ return { type: \"func\", callee: callee, arguments: argument }; }",
         "1": "{ return expression; }"
     },
     "それ": "{\n      return {\n        type: \"word\",\n        value: \"それ\"\n      }\n    }",
@@ -82,7 +83,11 @@
     "0": "{\n  sitei.push(jiyo)\n  return sitei.reverse().reduce((a, b) => {\n    return {\n      type: \"if\",\n      test: b[0],\n      consequent: b[1],\n      alternate: a\n    }\n  })\n}",
     "1": "{\n  return sitei.reverse().reduce((a, b) => {\n    return {\n      type: \"if\",\n      test: b[0],\n      consequent: b[1],\n      alternate: a\n    }\n  })\n}"
     },
-    "指定部": "{ return [test, consequent] }",
+    "指定部":{
+    "0": "{ return [\n    {\n      type: 'word',\n      value: 'それ'\n    },\n    consequent\n  ] }",
+    "1": "{ return [\n    {\n      type: 'BinaryExpression',\n      operator: '=',\n      left: testLeft,\n      right: testRight,\n    },\n    consequent\n  ] }",
+    "2": "{ return [test, consequent] }"
+    },
     "自余部": "{ return alternate }",
     "エラー監視文": {
         "0": "{\n  return {\n    type: \"try\",\n    block: block,\n    err_block: err_block,\n    fin_block: fin_block\n  }\n}",
@@ -104,6 +109,11 @@
         "0": "{ \n    return { \n      type: \"constructor\",\n      block: {\n        type: \"func\",\n        callee: callee,\n        args: []\n      }\n    }\n  }",
         "1": "{ \n    return { \n      type: \"constructor\",\n      block: block\n    }\n  }"
     },
+    "列挙関数文": "{\n      return {\n        type: \"func\",\n        callee: callee,\n        arguments: args\n      }\n  }",
+    "無名関数代入文": "{\n      return {\n        type: \"let\",\n        operator: '=',\n        left: left,\n        right: right\n      }\n  }",
+    "無名関数代入文無名関数": "{\n      return {\n        type: \"AnonymousFunction\",\n        params: params,\n        block: block\n      }\n  }",
+    "無名関数": "{\n      return {\n        type: \"AnonymousFunction\",\n        params: params,\n        block: block\n      }\n  }",
+    "無名関数引数": "{  return buildList(head, tail, 3)  }",
     "代入文": "{\n      return {\n        type: \"let\",\n        operator: operator,\n        left: left,\n        right: right\n      }\n  }",
     "宣言部": {
         "0": "{\n      return {\n        type: \"def_local_var\",\n        operator: \"=\",\n        left: left,\n        vartype: \"定数\",\n        right: right\n      }\n  }",
@@ -128,7 +138,7 @@
         "0": "{ \n    return { \n      type: \"export\", \n      source: source,\n      specifiers: specifiers.map( e => {\n        return {\n          id: e[0],\n          alias: e[3]\n        }\n      }),\n      alias: null\n    }\n  }",
         "1": "{ \n    return { \n      type: \"export\", \n      source: source,\n      specifiers: specifiers === null ? [] :\n        [\n          {\n            id:specifiers[2],\n            alias:null\n          }\n        ],\n      alias: alias[0]\n    }\n  }"
     },
-    "関数文": "{\n        return { type: \"func\", callee: callee, arguments: args };\n        }",
+    "なでしこ関数文": "{\n        if(num)args.push(num);\n        return { type: \"func\", callee: callee, arguments: args };\n        }",
     "デバッグ文": "{        return { type: \"debugger\" }        }",
     "文節": "{head.josi=body;return head}",
     "プログラム": "{\n      return {\n        type: \"Program\",\n        block: optionalList(body)\n      }\n    }",

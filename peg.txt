@@ -53,7 +53,7 @@ Start = __ プログラム:プログラム __ { return プログラム; }
   'は' / 'を' / 'に' / 'へ' / 'で' / 'と' / 'が' / 'の'
 たられば = 'でなければ'  / 'ならば' / 'なら' / 'たら' / 'れば'
 文末 = 'です'  / 'ます' / 'だ'
-キーワード = '関数' / '変数'
+キーワード = '関数' / '変数' / '非数' / '無限大' 
 
 機能語 = //機能語とキーワードとの違いは変数の一部に含められるか否か
   助詞 / たられば / 'ここから' / 'ここまで' 
@@ -73,7 +73,7 @@ Start = __ プログラム:プログラム __ { return プログラム; }
 一行範囲コメント  = 範囲コメント識別子始まり (!(範囲コメント識別子終わり / 改行) 文字)* 範囲コメント識別子終わり
 
 文字 = .
-___  = (空白 / コメント / 読点)*
+___  = (空白 / 改行記号 / コメント )*
 
 __  = (空白 / 改行記号 / コメント / 読点)*
 
@@ -114,25 +114,27 @@ EOF  = !.
 連文 = 文  接続詞  文
 
 文 = 
-//空文から抜ける文までは特定のキーワードで始まる文。続ける文から初期化文までは文の中で使う
-  block:空文                         { return block; }
-/ block:条件文        文の終わり     { return block; }
-/ block:エラー監視文  文の終わり     { return block; }
-/ block:逐次実行文    文の終わり     { return block; }
-/ block:関数定義文    文の終わり     { return block; }
-/ block:戻る文        文の終わり EOS { return block; }
-/ block:抜ける文      文の終わり EOS { return block; }
-/ block:続ける文      文の終わり EOS { return block; }
-/ block:継承文        文の終わり EOS { return block; }
-/ block:初期化文      文の終わり EOS { return block; }
-/ block:代入文        文の終わり EOS { return block; }
-/ block:繰返文        文の終わり EOS { return block; }
-/ block:反復文        文の終わり EOS { return block; }
-/ block:生成文        文の終わり EOS { return block; }
-/ block:取込文        文の終わり EOS { return block; }
-/ block:取出文        文の終わり EOS { return block; }
-/ block:デバッグ文    文の終わり EOS { return block; }
-/ block:関数文        文の終わり EOS { return block; }
+//空文から抜ける文までは特定のキーワードで始まる文。続ける文から初期化文までは文の中で使う。列挙関数文は式と判定されないよう代入文の前に
+  block:空文                           { return block; }
+/ block:条件文          文の終わり     { return block; }
+/ block:エラー監視文    文の終わり     { return block; }
+/ block:逐次実行文      文の終わり     { return block; }
+/ block:関数定義文      文の終わり     { return block; }
+/ block:戻る文          文の終わり EOS { return block; }
+/ block:抜ける文        文の終わり EOS { return block; }
+/ block:続ける文        文の終わり EOS { return block; }
+/ block:継承文          文の終わり EOS { return block; }
+/ block:初期化文        文の終わり EOS { return block; }
+/ block:列挙関数文      文の終わり EOS { return block; }
+/ block:無名関数代入文  文の終わり EOS { return block; }
+/ block:代入文          文の終わり EOS { return block; }
+/ block:繰返文          文の終わり EOS { return block; }
+/ block:反復文          文の終わり EOS { return block; }
+/ block:生成文          文の終わり EOS { return block; }
+/ block:取込文          文の終わり EOS { return block; }
+/ block:取出文          文の終わり EOS { return block; }
+/ block:デバッグ文      文の終わり EOS { return block; }
+/ block:なでしこ関数文  文の終わり EOS { return block; }
 
 ;
 文の終わり = 
@@ -186,7 +188,25 @@ EOT
     }
   })
 }
-指定部 = __ test:式 __  たられば  consequent:まとまり  { return [test, consequent] };
+指定部 = 
+  __ 'そう' __ たられば  consequent:まとまり  { return [
+    {
+      type: 'word',
+      value: 'それ'
+    },
+    consequent
+  ] }
+/ __ testLeft:式 __ 'が' __ testRight:式 __  たられば  consequent:まとまり  { return [
+    {
+      type: 'BinaryExpression',
+      operator: '=',
+      left: testLeft,
+      right: testRight,
+    },
+    consequent
+  ] }
+/ __ test:式 __  たられば  consequent:まとまり  { return [test, consequent] }
+
 自余部 = __ '違えば'  alternate:まとまり { return alternate };
 
 エラー監視文 = 
@@ -288,6 +308,38 @@ EOT
     }
   }
 ;
+
+列挙関数文 = callee:関数 Hidarimarukakko args:列挙引数 Migimarukakko {
+      return {
+        type: "func",
+        callee: callee,
+        arguments: args
+      }
+  }
+
+無名関数代入文 = left:関数  'に'?   'は' right:無名関数 {
+      return {
+        type: "let",
+        operator: '=',
+        left: left,
+        right: right
+      }
+  }
+無名関数代入文無名関数 = params:(Hidarimarukakko 無名関数引数 Migimarukakko)? block:まとまり {
+      return {
+        type: "AnonymousFunction",
+        params: params,
+        block: block
+      }
+  }
+無名関数 = Hidarimarukakko params:無名関数引数? Migimarukakko block:まとまり {
+      return {
+        type: "AnonymousFunction",
+        params: params,
+        block: block
+      }
+  }
+無名関数引数 = ___ head:変数 tail:(___ (Konma / 読点) ___ 変数 )* ___ {  return buildList(head, tail, 3)  }
 
 代入文 = 
   left:式左側 __ operator:代入演算子 __ right:式 {
@@ -478,19 +530,12 @@ EOT
 ;
 
 
-関数文 = 
-  なでしこ関数文
-/ 列挙関数文 
-/ 無名関数を引数に取る関数文 
-;
-
-なでしこ関数文 = args:文節*  __ suuti? callee:関数 {
+なでしこ関数文 = args:文節*  __ num:suuti? callee:関数 {
+        if(num)args.push(num);
         return { type: "func", callee: callee, arguments: args };
         }
 文節 = head:式  body:助詞 __ {head.josi=body;return head}
 
-列挙関数文 = calle:関数 Hidarimarukakko args:列挙引数 Migimarukakko
-無名関数を引数に取る関数文 = 関数  'に'?   'は'  ( '('  (引数  (助詞 / Konma))*  ')' )?  文  'ここまで' ;
 
 デバッグ文 = 'ブレイクポイント' {        return { type: "debugger" }        }
 
@@ -500,10 +545,13 @@ EOT
 読点 = '、' ;
 
 
-
-
-
-
+無名関数式 = ( '関数' / '●' ) mumei:無名関数 {
+      return {
+        type: "AnonymousFunctionExpression",
+        params: mumei.params,
+        block: mumei.block
+      }
+    }
 
 基本式
   = 'それ' {
@@ -518,8 +566,10 @@ EOT
         value: "これ"
       }
     }
-  / 変数 
+  / 無名関数式 
+  / argument:値 !機能語 callee:関数 { return { type: "func", callee: callee, arguments: argument }; }//「5倍」など数字の後に直接関数がつく関数用。「a倍」は文脈パーサーで切り分ける
   / 値 
+  / 変数 
   / 配列 
   / オブジェクト 
   / Hidarimarukakko  expression:式  Migimarukakko { return expression; }
@@ -554,12 +604,12 @@ EOT
 
 呼出式
   = head:(
-      callee:参照式 ___ args:引数 {
+      callee:参照式 __ args:引数 {
         return { type: "CallExpression", callee: callee, arguments: args };
         }
       ) 
     tail:(
-        ___  Hidarimarukakko args:引数 Migimarukakko {
+        Hidarimarukakko args:引数 Migimarukakko {
           return { type: "CallExpression", arguments: args };
         }
       / Hidarikakukakko property:式 __ Migikakukakko {
@@ -783,22 +833,22 @@ nottoikooru = '≠' ; //@nottoikooru
 偽 = '偽'  / hikubetuefu  hikubetuee  hikubetuelu  hikubetuesu  hikubetuii { return { type: "Literal", value: false }  };
 
 suuti = //@suuti
-  literal:非数       (&機能語 / !(名前始 / jussinsuuketa)) {
+  literal:非数        {
       return literal;
     }
-/ literal:無限大     (&機能語 / !(名前始 / jussinsuuketa)) {
+/ literal:無限大      {
       return literal;
     }
-/ literal:二進数     (&機能語 / !(名前始 / jussinsuuketa)) {
+/ literal:二進数      {
       return literal;
     }
-/ literal:八進数     (&機能語 / !(名前始 / jussinsuuketa)) {
+/ literal:八進数      {
       return literal;
     }
-/ literal:十六進数   (&機能語 / !(名前始 / jussinsuuketa)) {
+/ literal:十六進数    {
       return literal;
     }
-/ literal:jussinsuu     (&機能語 / !(名前始 / jussinsuuketa)) {
+/ literal:jussinsuu      {
       return literal;
     }; 
 
@@ -858,7 +908,7 @@ suutikugirimoji = Andaabaa ; //@suutikugirimoji
 / アポストロフィ文字列
 ;
 
-S展開文字列 = 'S'  Hidarinamikakko Hidarinamikakko Hidarinamikakko elements:(tenkaibu / 三連波括弧文字列中身)*  Miginamikakko Miginamikakko Miginamikakko {
+S展開文字列 = 'S' Hidarinamikakko Hidarinamikakko Hidarinamikakko elements:(tenkaibu / 三連波括弧文字列中身)*  Miginamikakko Miginamikakko Miginamikakko {
       return { type: "TemplateLiteral", quasis: elements }
      }
 文字列展開文字列 = '文字列'  Hidarinamikakko  Hidarinamikakko  Hidarinamikakko  elements:(tenkaibu / 三連波括弧文字列中身)*  Miginamikakko  Miginamikakko  Miginamikakko {
